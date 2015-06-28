@@ -194,8 +194,12 @@ typedef struct _AttributeFilterList {
 } AttributeFilterList;
 
 
-Configurations configurations;
-SensorComp *sensorsList;
+/*
+ * Anton Sabadash (rjf.prophet@gmail.com)
+ * Mark symbols as extern to allow actual inclusion to multifile applications (resolve multiple declaration linker error)
+ */
+extern Configurations configurations;
+extern SensorComp *sensorsList;
 
 void parseConfiguration(char *config_file_path);
 bool prepareUrl(char **full_url, char *url_prepend, char *url_append, KeyValueParams *urlParams);

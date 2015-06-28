@@ -38,6 +38,13 @@
 
 static bool isInitialized = false;
 
+/** 
+ * Anton Sabadash (rjf.prophet@gmail.com)
+ * Define symbols maked extern in iotkit.h 
+ */
+Configurations configurations;
+SensorComp *sensorsList;
+
 /**
  * Specifies the library version
  *
