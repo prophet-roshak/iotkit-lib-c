@@ -44,6 +44,193 @@ long getCurrentTimeInSeconds() {
 }
 
 /**
+ * Creates head of data submit values list.
+ * returns pointer to head of list, or NULL if unsuccessfull
+ * to cleanup linked list use cleanDataNodes
+ *
+ * @param cname specifies the component name
+ * @param value specifies the value
+ */
+DataNode *createSubmitDataObject(char *cname, char *value) {
+
+	DataNode *dataNode = (DataNode*)malloc(sizeof(DataNode));
+	if (dataNode == NULL) {
+		fprintf(stderr, "createSubmitDataObject::Cannot allocate node memery");
+		return NULL;
+	}
+
+	dataNode->cname = cname;
+	dataNode->value = value;
+	dataNode->next = NULL;
+	dataNode->latitude = NULL;
+	dataNode->longitude = NULL;
+	dataNode->height = NULL;
+
+	return dataNode;
+}
+
+/**
+ * Adds item to the data list
+ *
+ * @param top specifies head of the list
+ * @param cname specifies the component name
+ * @param value specifies the value
+ */
+DataNode *pushData(DataNode *top, char *cname, char *value) {
+	if (!top)
+		return NULL;
+
+	DataNode *newNode = (DataNode*)malloc(sizeof(DataNode));
+	if (newNode == NULL) {
+		fprintf(stderr, "createSubmitDataObject::Cannot allocate node memery");
+		return NULL;
+	}
+
+	newNode->cname = cname;
+	newNode->value = value;
+	newNode->latitude = NULL;
+	newNode->longitude = NULL;
+	newNode->height = NULL;
+
+	// Устанавливаем указатель следующего элемента
+	DataNode *last = top;
+	while (last->next) {
+		last = last->next;
+	}
+	last->next = newNode;
+
+	return newNode;
+}
+
+bool cleanDataNodes(DataNode *first) {
+	DataNode *last = first;
+	DataNode *current = NULL;
+	while (last->next) {
+		current = last;
+		last = last->next;
+		free(current);
+	}
+	return true;
+}
+
+bool addNodeToBody(char *body, DataNode *node, char* currentTimeInMills) {
+
+	if (!body) {
+		return false;
+	}
+
+	if (!node) {
+		return false;
+	}
+
+    if(!node->cname) {
+        fprintf(stderr, "submitData::Component Name cannot be NULL\n");
+        return false;
+    }
+
+    char *cid = false;
+    cid = getSensorComponentId(node->cname);
+    if(!cid) {
+        fprintf(stderr, "submitData::Component is not registered\n");
+        return false;
+    }
+
+    if(!node->value) {
+        fprintf(stderr, "submitData::Value cannot be NULL\n");
+        return false;
+    }
+
+    strcat(body, "{\"componentId\":\"");
+	strcat(body, cid); // CHECK API!
+	strcat(body, "\",\"on\":");
+	strcat(body, currentTimeInMills);
+
+	if(node->latitude != NULL && node->longitude != NULL) {
+		strcat(body, ",\"loc\":[");
+
+		strcat(body, node->latitude);
+		strcat(body, ",");
+		strcat(body, node->longitude);
+
+		if(node->height) {
+			strcat(body, ",");
+			strcat(body, node->height);
+		}
+		strcat(body, "]");
+	}
+
+	strcat(body, ",\"value\":\"");
+	//strcat(body, value);
+	strcat(body, "\"}");
+
+	return false;
+}
+
+char *submitDataArray(DataNode *dataList, char *latitude, char *longitude, char *height) {
+	struct curl_slist *headers = NULL;
+	char *url;
+	char body[BODY_SIZE_MED];
+
+	char currentTimeInMills[BODY_SIZE_MED];
+	char *deviceAuthorizationHeader = (char *)getDeviceAuthorizationToken();
+	HttpResponse *response = NULL;
+
+	if(deviceAuthorizationHeader == NULL) {
+		fprintf(stderr, "submitData::Device Authorization Token not available\n");
+		return NULL;
+	}
+
+	if (!dataList) {
+		return NULL;
+	}
+
+	response = (HttpResponse *)malloc(sizeof(HttpResponse));
+	response->code = 0;
+	response->data = NULL;
+
+	if(!configurations.data_account_id) {
+		fprintf(stderr, "submitData::Account is NULL. Device appears to be unactivated\n");
+		return NULL;
+	}
+
+	if(prepareUrl(&url, configurations.base_url, configurations.submit_data, NULL)) {
+		appendHttpHeader(&headers, HEADER_CONTENT_TYPE_NAME, HEADER_CONTENT_TYPE_JSON);
+		appendHttpHeader(&headers, HEADER_AUTHORIZATION, deviceAuthorizationHeader);
+
+		sprintf(currentTimeInMills, "%lld", (long long) getCurrentTimeInSeconds() * 1000L);
+
+		strcpy(body, "{");
+		strcat(body, "\"on\":");
+		strcat(body, currentTimeInMills);
+		strcat(body, ",\"accountId\":\"");
+		strcat(body, configurations.data_account_id);
+		// opening array bracket
+		strcat(body, "\",\"data\":[");
+
+		DataNode *node = dataList;
+		while (node != NULL) {
+			if (!addNodeToBody(body, node, (char*)&currentTimeInMills)) {
+				return NULL;
+			}
+			node = node->next;
+		}
+
+		// closing array bracket
+		strcat(body, "]}");
+
+		#if DEBUG
+			printf("Prepared BODY is %s\n", body);
+		#endif
+
+		doHttpPost(url, headers, body, response);
+
+		return createHttpResponseJson(response);
+	}
+
+	return NULL;
+}
+
+/**
  * REST API to submit data along with sensor location
  *
  * @param cname specifies the component name

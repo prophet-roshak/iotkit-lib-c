@@ -38,7 +38,21 @@ typedef struct _RetrieveData {
     StringList *componentId;
 } RetrieveData;
 
+typedef struct _DataNode {
+	char *cname;
+	char *value;
+	char* latitude;
+	char* longitude;
+	char* height;
+	struct _DataNode *next;
+} DataNode;
+
+DataNode *createSubmitDataObject(char *cname, char *value);
+DataNode *pushData(DataNode *fist, char *cname, char *value);
+bool cleanDataNodes(DataNode *first);
+
 char *submitData(char *cname, char *value);
+char *submitDataArray(DataNode *dataList, char *latitude, char *longitude, char *height);
 char *submitDataWithLoc(char *cname, char *value, char *latitude, char *longitude, char *height);
 
 RetrieveData *createRetrieveDataObject(long fromMillis, long toMillis);
