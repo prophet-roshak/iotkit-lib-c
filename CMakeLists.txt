@@ -67,6 +67,7 @@ option (BUILDDOC "Build documentation." ON)
 option (BUILDSWIG "Build swig modules." ON)
 option (BUILDSWIGPYTHON "Build swig python modules." ON)
 option (BUILDSWIGNODE "Build swig node modules." ON)
+option (WITH_DEBUG "Print debug output" OFF)
 
 if (BUILDDOC)
   # add a target to generate API documentation with Doxygen
@@ -79,6 +80,11 @@ if (BUILDDOC)
       COMMENT "Generating API documentation with Doxygen" VERBATIM
     )
   endif (DOXYGEN_FOUND)
+endif()
+
+if (WITH_DEBUG)
+  MESSAGE(STATUS "WITH_DEBUG")
+  add_definitions(-DDEBUG=1)
 endif()
 
 # add the sub-directories
