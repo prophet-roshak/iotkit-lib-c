@@ -166,7 +166,7 @@ bool addNodeToBody(char *body, DataNode *node, char* currentTimeInMills) {
 	return false;
 }
 
-char *submitDataArray(DataNode *dataList, char *latitude, char *longitude, char *height) {
+char *submitDataArray(DataNode *dataList) {
 	struct curl_slist *headers = NULL;
 	char *url;
 	char body[BODY_SIZE_MED];

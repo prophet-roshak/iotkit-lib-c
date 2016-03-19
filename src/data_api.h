@@ -52,7 +52,7 @@ DataNode *pushData(DataNode *fist, char *cname, char *value);
 bool cleanDataNodes(DataNode *first);
 
 char *submitData(char *cname, char *value);
-char *submitDataArray(DataNode *dataList, char *latitude, char *longitude, char *height);
+char *submitDataArray(DataNode *dataList);
 char *submitDataWithLoc(char *cname, char *value, char *latitude, char *longitude, char *height);
 
 RetrieveData *createRetrieveDataObject(long fromMillis, long toMillis);
