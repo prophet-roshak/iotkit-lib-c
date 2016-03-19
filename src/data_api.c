@@ -207,8 +207,11 @@ char *submitDataArray(DataNode *dataList) {
 		while (node != NULL) {
 			if (!addNodeToBody(body, node, (char*)&currentTimeInMills)) {
 				fprintf(stderr, "submitDataArray::Error detected in submitted data\n");
-				return NULL;
 			}
+			else if (node->next) {
+				strcat(body, ",");
+			}
+
 			node = node->next;
 		}
 
