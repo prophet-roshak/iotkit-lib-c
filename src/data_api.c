@@ -43,6 +43,9 @@ long getCurrentTimeInSeconds() {
     return elapsedtime;
 }
 
+
+
+
 /**
  * Creates head of data submit values list.
  * returns pointer to head of list, or NULL if unsuccessfull
@@ -80,17 +83,7 @@ DataNode *pushData(DataNode *top, char *cname, char *value) {
 	if (!top)
 		return NULL;
 
-	DataNode *newNode = (DataNode*)malloc(sizeof(DataNode));
-	if (newNode == NULL) {
-		fprintf(stderr, "createSubmitDataObject::Cannot allocate node memery");
-		return NULL;
-	}
-
-	newNode->cname = cname;
-	newNode->value = value;
-	newNode->latitude = NULL;
-	newNode->longitude = NULL;
-	newNode->height = NULL;
+	DataNode *newNode = createSubmitDataObject(cname, value);
 
 	// Устанавливаем указатель следующего элемента
 	DataNode *last = top;
