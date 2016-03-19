@@ -108,28 +108,30 @@ bool cleanDataNodes(DataNode *first) {
 
 bool addNodeToBody(char *body, DataNode *node, char* currentTimeInMills) {
 
-	if (!body) {
+	if (body == NULL) {
+		fprintf(stderr, "submitDataArray::Body cannot be NULL\n");
 		return false;
 	}
 
 	if (!node) {
+		fprintf(stderr, "submitDataArray::Node cannot be NULL\n");
 		return false;
 	}
 
     if(!node->cname) {
-        fprintf(stderr, "submitData::Component Name cannot be NULL\n");
+        fprintf(stderr, "submitDataArray::Component Name cannot be NULL\n");
         return false;
     }
 
     char *cid = false;
     cid = getSensorComponentId(node->cname);
     if(!cid) {
-        fprintf(stderr, "submitData::Component is not registered\n");
+        fprintf(stderr, "submitDataArray::Component \"%s\" is not registered\n", node->cname);
         return false;
     }
 
     if(!node->value) {
-        fprintf(stderr, "submitData::Value cannot be NULL\n");
+        fprintf(stderr, "submitDataArray::Value cannot be NULL\n");
         return false;
     }
 
@@ -153,10 +155,10 @@ bool addNodeToBody(char *body, DataNode *node, char* currentTimeInMills) {
 	}
 
 	strcat(body, ",\"value\":\"");
-	//strcat(body, value);
+	strcat(body, node->value);
 	strcat(body, "\"}");
 
-	return false;
+	return true;
 }
 
 char *submitDataArray(DataNode *dataList) {
@@ -169,11 +171,12 @@ char *submitDataArray(DataNode *dataList) {
 	HttpResponse *response = NULL;
 
 	if(deviceAuthorizationHeader == NULL) {
-		fprintf(stderr, "submitData::Device Authorization Token not available\n");
+		fprintf(stderr, "submitDataArray::Device Authorization Token not available\n");
 		return NULL;
 	}
 
 	if (!dataList) {
+		fprintf(stderr, "submitDataArray::Empty data list on input available\n");
 		return NULL;
 	}
 
@@ -182,7 +185,7 @@ char *submitDataArray(DataNode *dataList) {
 	response->data = NULL;
 
 	if(!configurations.data_account_id) {
-		fprintf(stderr, "submitData::Account is NULL. Device appears to be unactivated\n");
+		fprintf(stderr, "submitDataArray::Account is NULL. Device appears to be unactivated\n");
 		return NULL;
 	}
 
@@ -203,6 +206,7 @@ char *submitDataArray(DataNode *dataList) {
 		DataNode *node = dataList;
 		while (node != NULL) {
 			if (!addNodeToBody(body, node, (char*)&currentTimeInMills)) {
+				fprintf(stderr, "submitDataArray::Error detected in submitted data\n");
 				return NULL;
 			}
 			node = node->next;
